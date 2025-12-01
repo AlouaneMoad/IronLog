@@ -144,6 +144,12 @@
                 <h2 class="text-2xl font-bold mb-4">Workout Log</h2> 
                 <div id="history-list" class="space-y-4"></div> 
             </section> 
+
+            <!-- LEARN -->
+            <section id="tab-learn" class="p-4 hidden animate-fade">
+                <h2 class="text-2xl font-bold mb-4">Exercise Guide</h2>
+                <div id="learn-list" class="space-y-6"></div>
+            </section>
  
             <!-- PROFILE SECTION (NEW) --> 
             <section id="tab-profile" class="p-4 hidden animate-fade space-y-6"> 
@@ -221,6 +227,8 @@
             <button onclick="app.nav('history')" id="nav-history" class="text-slate-500 flex flex-col items-center gap-1 p-2"><i data-lucide="calendar" class="w-5 h-5"></i><span class="text-[9px] font-bold">LOG</span></button> 
              
             <button onclick="workout.startNew()" class="bg-gradient-to-tr from-emerald-500 to-cyan-500 p-4 rounded-full -mt-8 shadow-xl border-4 border-slate-900 text-white hover:scale-105 transition-transform"><i data-lucide="play" class="fill-current w-6 h-6 ml-1"></i></button> 
+            
+            <button onclick="app.nav('learn')" id="nav-learn" class="text-slate-500 flex flex-col items-center gap-1 p-2"><i data-lucide="book-open" class="w-5 h-5"></i><span class="text-[9px] font-bold">LEARN</span></button> 
              
             <button onclick="app.nav('rank')" id="nav-rank" class="text-slate-500 flex flex-col items-center gap-1 p-2"><i data-lucide="trophy" class="w-5 h-5"></i><span class="text-[9px] font-bold">RANK</span></button> 
             <button onclick="app.nav('profile')" id="nav-profile" class="text-slate-500 flex flex-col items-center gap-1 p-2"><i data-lucide="user" class="w-5 h-5"></i><span class="text-[9px] font-bold">ME</span></button> 
