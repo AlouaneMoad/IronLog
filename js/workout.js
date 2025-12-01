@@ -15,8 +15,8 @@
  
             startPreset(type) { 
                 this.startNew(); 
-                if(type === 'Push') { this.addExercise('bp'); this.addExercise('ohp'); this.addExercise('dp'); }  
-                else if (type === 'Pull') { this.addExercise('dl'); this.addExercise('pu'); }  
+                if(type === 'Push') { this.addExercise('bp'); this.addExercise('ohp'); this.addExercise('tpd'); }  
+                else if (type === 'Pull') { this.addExercise('dl'); this.addExercise('plup'); }  
                 else { this.addExercise('sq'); this.addExercise('lu'); } 
             } 
  
@@ -34,7 +34,13 @@
                 document.getElementById('modal-exercises').classList.remove('hidden'); 
                 document.getElementById('exercise-list').innerHTML = EXERCISES.map(ex => ` 
                     <button onclick="workout.addExercise('${ex.id}'); document.getElementById('modal-exercises').classList.add('hidden')" class="w-full text-left glass p-4 rounded-xl flex items-center justify-between hover:bg-slate-800"> 
-                        <div><div class="font-bold text-white">${ex.name}</div><div class="text-xs text-slate-400">${ex.muscle} • x${ex.diff} XP</div></div> 
+                        <div>
+                            <div class="font-bold text-white">${ex.name}</div>
+                            <div class="text-xs text-slate-400 flex gap-2">
+                                <span>${ex.muscle} • x${ex.diff} XP</span>
+                                <span class="text-blue-400">• ${ex.difficulty || ''}</span>
+                            </div>
+                        </div> 
                         <i data-lucide="plus-circle" class="text-emerald-400"></i> 
                     </button> 
                 `).join(''); 

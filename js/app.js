@@ -379,13 +379,45 @@
             } 
  
             nav(tab) { 
-                ['home', 'rank', 'history', 'profile'].forEach(t => { 
-                    document.getElementById(`tab-${t}`).classList.add('hidden'); 
-                    document.getElementById(`nav-${t}`).classList.remove('text-emerald-400'); 
-                    document.getElementById(`nav-${t}`).classList.add('text-slate-500'); 
+                ['home', 'rank', 'history', 'learn', 'profile'].forEach(t => { 
+                    const tabEl = document.getElementById(`tab-${t}`);
+                    if(tabEl) tabEl.classList.add('hidden'); 
+                    
+                    const navEl = document.getElementById(`nav-${t}`);
+                    if(navEl) {
+                        navEl.classList.remove('text-emerald-400'); 
+                        navEl.classList.add('text-slate-500'); 
+                    }
                 }); 
                 document.getElementById(`tab-${tab}`).classList.remove('hidden'); 
                 document.getElementById(`nav-${tab}`).classList.add('text-emerald-400'); 
+                
                 if(tab === 'rank') this.loadLeaderboard('global'); 
+                if(tab === 'learn') this.renderLearnSection();
             } 
+
+            renderLearnSection() {
+                const list = document.getElementById('learn-list');
+                list.innerHTML = EXERCISES.map(ex => `
+                    <div class="glass rounded-xl overflow-hidden">
+                        <div class="h-48 overflow-hidden relative">
+                            <img src="${ex.gif || 'https://placehold.co/600x400?text=No+GIF'}" 
+                                 onerror="this.src='https://placehold.co/600x400?text=Image+Not+Found'" 
+                                 class="w-full h-full object-cover" 
+                                 alt="${ex.name}">
+                            <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-4 pt-10">
+                                <h3 class="font-bold text-xl text-white">${ex.name}</h3>
+                                <p class="text-xs text-emerald-400 uppercase font-bold">${ex.muscle}</p>
+                            </div>
+                        </div>
+                        <div class="p-4">
+                            <p class="text-slate-300 text-sm leading-relaxed">${ex.instructions}</p>
+                            <div class="mt-3 flex items-center gap-2 text-xs text-slate-500">
+                                <span class="bg-slate-800 px-2 py-1 rounded border border-slate-700">Diff: ${ex.diff}</span>
+                                <span class="bg-blue-900/30 text-blue-400 px-2 py-1 rounded border border-blue-500/30">${ex.difficulty || 'N/A'}</span>
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+            }
         } 
