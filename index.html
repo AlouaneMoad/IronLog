@@ -1,0 +1,243 @@
+<!DOCTYPE html> 
+<html lang="en"> 
+<head> 
+    <meta charset="UTF-8"> 
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"> 
+    <title>IronLog v5.4 - Account Deletion</title> 
+     
+    <!-- 1. UI LIBRARIES --> 
+    <script src="https://cdn.tailwindcss.com"></script> 
+    <script src="https://unpkg.com/lucide@latest"></script> 
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script> 
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script> 
+    <link href="https://fonts.googleapis.com/css2?family=Teko:wght@400;600;700&family=Inter:wght@400;600;800&display=swap" rel="stylesheet"> 
+ 
+    <!-- 2. FIREBASE LIBRARIES --> 
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script> 
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script> 
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script> 
+ 
+    <!-- 3. CUSTOM STYLES -->
+    <link rel="stylesheet" href="css/style.css">
+</head> 
+<body class="h-screen flex flex-col overflow-hidden"> 
+ 
+    <!-- LOADING OVERLAY --> 
+    <div id="global-loader" class="fixed inset-0 z-[60] bg-slate-950 flex flex-col items-center justify-center"> 
+        <div class="loader mb-4"></div> 
+        <p class="text-slate-500 text-xs font-mono">LOADING...</p> 
+    </div> 
+ 
+    <!-- ================= AUTH VIEW ================= --> 
+    <div id="view-auth" class="fixed inset-0 z-50 bg-slate-950 flex flex-col items-center justify-center p-6 hidden"> 
+        <div class="w-full max-w-sm text-center slide-up"> 
+            <div class="mx-auto w-24 h-24 bg-gradient-to-tr from-emerald-500 to-cyan-500 rounded-full flex items-center justify-center mb-6 shadow-2xl shadow-emerald-500/20"> 
+                <i data-lucide="dumbbell" class="w-12 h-12 text-white"></i> 
+            </div> 
+            <h1 class="text-6xl font-rpg font-bold mb-2">IronLog <span class="text-emerald-400">V</span></h1> 
+            <p class="text-slate-400 mb-8">Production Build</p> 
+ 
+            <div class="flex bg-slate-900 rounded-lg p-1 mb-6"> 
+                <button onclick="app.toggleAuth('login')" id="btn-mode-login" class="flex-1 py-2 rounded font-bold bg-slate-800 text-white transition-all">Login</button> 
+                <button onclick="app.toggleAuth('signup')" id="btn-mode-signup" class="flex-1 py-2 rounded font-bold text-slate-500 transition-all">Signup</button> 
+            </div> 
+ 
+            <form id="auth-form" class="space-y-4 text-left"> 
+                <input type="text" id="inp-name" placeholder="Hero Name" class="hidden w-full bg-slate-900 border border-slate-700 p-4 rounded-xl outline-none focus:border-emerald-500 text-white placeholder-slate-500"> 
+                <input type="email" id="inp-email" placeholder="Email" class="w-full bg-slate-900 border border-slate-700 p-4 rounded-xl outline-none focus:border-emerald-500 text-white placeholder-slate-500"> 
+                <input type="password" id="inp-pass" placeholder="Password" class="w-full bg-slate-900 border border-slate-700 p-4 rounded-xl outline-none focus:border-emerald-500 text-white placeholder-slate-500"> 
+                 
+                <select id="inp-country" class="hidden w-full bg-slate-900 border border-slate-700 p-4 rounded-xl outline-none focus:border-emerald-500 text-white"> 
+                    <option value="USA">🇺🇸 United States</option> 
+                    <option value="UK">🇬🇧 United Kingdom</option> 
+                    <option value="CAN">🇨🇦 Canada</option> 
+                    <option value="GER">🇩🇪 Germany</option> 
+                    <option value="BRA">🇧🇷 Brazil</option> 
+                    <option value="IND">🇮🇳 India</option> 
+                </select> 
+ 
+                <button type="submit" class="w-full bg-emerald-500 hover:bg-emerald-400 text-white font-bold py-4 rounded-xl shadow-lg shadow-emerald-900/40 transition-all mt-4 flex justify-center items-center gap-2"> 
+                    <span id="auth-btn-text">LOGIN</span> 
+                </button> 
+            </form> 
+        </div> 
+    </div> 
+ 
+    <!-- ================= MAIN APP LAYOUT ================= --> 
+    <div id="view-app" class="hidden flex-col h-full relative"> 
+         
+        <!-- HEADER --> 
+        <header class="glass px-4 py-3 flex justify-between items-center z-20"> 
+            <div class="flex items-center gap-3"> 
+                <div class="relative"> 
+                    <img id="header-avatar" src="" class="w-10 h-10 rounded-full border-2 border-slate-700 bg-slate-800"> 
+                    <div id="header-lvl-badge" class="absolute -bottom-1 -right-1 bg-amber-500 text-[10px] font-bold px-1 rounded text-black border border-white">1</div> 
+                </div> 
+                <div> 
+                    <h2 id="header-name" class="font-bold leading-none">Loading...</h2> 
+                    <div class="w-24 h-1.5 bg-slate-800 rounded-full mt-1.5 overflow-hidden"> 
+                        <div id="header-xp-bar" class="h-full bg-emerald-500 xp-bar-fill w-0"></div> 
+                    </div> 
+                </div> 
+            </div> 
+             
+            <div class="text-right"> 
+                <div class="flex items-center justify-end gap-1 text-orange-500"> 
+                    <i data-lucide="flame" class="w-4 h-4 fill-orange-500"></i> 
+                    <span id="header-streak" class="font-rpg text-xl font-bold">0</span> 
+                </div> 
+                <button onclick="app.logout()" class="text-[10px] text-slate-500 hover:text-white uppercase tracking-wide">LOGOUT</button> 
+            </div> 
+        </header> 
+ 
+        <!-- SCROLLABLE CONTENT --> 
+        <main id="main-scroll" class="flex-1 overflow-y-auto overflow-x-hidden relative bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')]"> 
+             
+            <!-- DASHBOARD --> 
+            <section id="tab-home" class="p-4 space-y-6 animate-fade"> 
+                <div id="card-rank" class="glass p-6 rounded-2xl relative overflow-hidden border-t-4 rank-Bronze"> 
+                    <div class="absolute right-[-20px] top-[-20px] opacity-10"><i data-lucide="shield" class="w-32 h-32"></i></div> 
+                    <p class="font-rpg text-slate-400 text-lg">Current Rank</p> 
+                    <h1 id="dash-rank" class="font-rpg text-5xl font-bold mb-2">LOADING</h1> 
+                    <p id="dash-xp" class="text-sm text-slate-300">... XP</p> 
+                </div> 
+ 
+                <div class="grid grid-cols-2 gap-4"> 
+                    <div class="glass p-4 rounded-xl"> 
+                        <p class="text-xs text-slate-400 uppercase">Total Volume</p> 
+                        <h3 id="stat-vol" class="text-2xl font-bold">0k</h3> 
+                    </div> 
+                    <div class="glass p-4 rounded-xl"> 
+                        <p class="text-xs text-slate-400 uppercase">Workouts</p> 
+                        <h3 id="stat-count" class="text-2xl font-bold">0</h3> 
+                    </div> 
+                </div> 
+ 
+                <div class="glass p-4 rounded-xl"> 
+                    <h3 class="font-bold mb-4">Activity (Last 7 Days)</h3> 
+                    <div class="h-40"><canvas id="chart-activity"></canvas></div> 
+                </div> 
+ 
+                <!-- Quick Plans --> 
+                <div> 
+                    <h3 class="font-bold mb-3">Quick Plans</h3> 
+                    <div class="flex gap-3 overflow-x-auto no-scrollbar pb-2"> 
+                        <button onclick="workout.startPreset('Push')" class="min-w-[140px] glass p-4 rounded-xl text-left hover:border-emerald-500 transition-colors"><i data-lucide="biceps-flexed" class="text-blue-400 mb-2"></i><div class="font-bold">Push Day</div></button> 
+                        <button onclick="workout.startPreset('Pull')" class="min-w-[140px] glass p-4 rounded-xl text-left hover:border-emerald-500 transition-colors"><i data-lucide="anchor" class="text-emerald-400 mb-2"></i><div class="font-bold">Pull Day</div></button> 
+                        <button onclick="workout.startPreset('Legs')" class="min-w-[140px] glass p-4 rounded-xl text-left hover:border-emerald-500 transition-colors"><i data-lucide="footprints" class="text-orange-400 mb-2"></i><div class="font-bold">Leg Day</div></button> 
+                    </div> 
+                </div> 
+            </section> 
+ 
+            <!-- LEADERBOARD --> 
+            <section id="tab-rank" class="p-4 hidden animate-fade"> 
+                <div class="flex gap-2 mb-6 p-1 glass rounded-lg"> 
+                    <button onclick="app.loadLeaderboard('global')" id="btn-lb-global" class="flex-1 py-2 rounded font-bold bg-slate-700 text-white text-sm">Global</button> 
+                    <button onclick="app.loadLeaderboard('country')" id="btn-lb-country" class="flex-1 py-2 rounded font-bold text-slate-500 text-sm">Country</button> 
+                </div> 
+                <div id="lb-loader" class="text-center py-4 hidden"><div class="loader mx-auto"></div></div> 
+                <div id="lb-list" class="space-y-3"></div> 
+            </section> 
+ 
+            <!-- HISTORY --> 
+            <section id="tab-history" class="p-4 hidden animate-fade"> 
+                <h2 class="text-2xl font-bold mb-4">Workout Log</h2> 
+                <div id="history-list" class="space-y-4"></div> 
+            </section> 
+ 
+            <!-- PROFILE SECTION (NEW) --> 
+            <section id="tab-profile" class="p-4 hidden animate-fade space-y-6"> 
+                <h2 class="text-2xl font-bold mb-2">My Profile</h2> 
+                 
+                <!-- Edit Name Card --> 
+                <div class="glass p-5 rounded-xl border border-white/5"> 
+                    <div class="flex items-center gap-3 mb-4"> 
+                        <div class="bg-blue-500/20 p-2 rounded-lg"><i data-lucide="user" class="text-blue-400"></i></div> 
+                        <h3 class="font-bold">Identity</h3> 
+                    </div> 
+                    <div class="space-y-3"> 
+                        <div> 
+                            <label class="text-xs text-slate-400 uppercase font-bold">Hero Name</label> 
+                            <input type="text" id="prof-name" class="w-full bg-slate-900 border border-slate-700 p-3 rounded-lg mt-1 outline-none focus:border-blue-500 text-white"> 
+                        </div> 
+                        <button onclick="app.handleUpdateName()" id="btn-save-name" class="w-full bg-blue-600 hover:bg-blue-500 py-3 rounded-lg font-bold text-sm">UPDATE NAME</button> 
+                    </div> 
+                </div> 
+ 
+                <!-- Change Password Card --> 
+                <div class="glass p-5 rounded-xl border border-white/5"> 
+                    <div class="flex items-center gap-3 mb-4"> 
+                        <div class="bg-emerald-500/20 p-2 rounded-lg"><i data-lucide="lock" class="text-emerald-400"></i></div> 
+                        <h3 class="font-bold">Security</h3> 
+                    </div> 
+                    <div class="space-y-3"> 
+                        <div> 
+                            <label class="text-xs text-slate-400 uppercase font-bold">New Password</label> 
+                            <input type="password" id="prof-pass" placeholder="Min 6 characters" class="w-full bg-slate-900 border border-slate-700 p-3 rounded-lg mt-1 outline-none focus:border-emerald-500 text-white"> 
+                        </div> 
+                        <button onclick="app.handleUpdatePass()" id="btn-save-pass" class="w-full bg-slate-700 hover:bg-slate-600 py-3 rounded-lg font-bold text-sm">CHANGE PASSWORD</button> 
+                    </div> 
+                </div> 
+ 
+                <!-- Danger Zone (Delete Account) --> 
+                <div class="pt-6 border-t border-white/10 space-y-3"> 
+                    <button onclick="app.logout()" class="w-full border border-slate-600 text-slate-400 hover:bg-slate-800 py-4 rounded-xl font-bold flex items-center justify-center gap-2"> 
+                        <i data-lucide="log-out"></i> LOGOUT 
+                    </button> 
+                     
+                    <button onclick="app.handleDeleteAccount()" class="w-full bg-red-500/10 border border-red-500/50 text-red-500 hover:bg-red-500/20 py-4 rounded-xl font-bold flex items-center justify-center gap-2"> 
+                        <i data-lucide="trash-2"></i> DELETE ACCOUNT 
+                    </button> 
+                </div> 
+                 
+                <div class="text-center text-xs text-slate-600 font-mono pt-4"> 
+                    IronLog v5.4<br>UID: <span id="prof-uid">...</span> 
+                </div> 
+            </section> 
+ 
+        </main> 
+ 
+        <!-- ACTIVE WORKOUT OVERLAY --> 
+        <div id="view-active-workout" class="fixed inset-0 z-40 bg-slate-950 flex flex-col hidden slide-up"> 
+            <div class="px-4 py-3 border-b border-white/10 flex justify-between items-center bg-slate-900"> 
+                <div><div id="session-timer" class="font-mono text-2xl font-bold text-emerald-400">00:00</div><div class="text-xs text-slate-400 uppercase tracking-widest">Time</div></div> 
+                <button onclick="workout.finish()" id="btn-finish-workout" class="bg-emerald-600 hover:bg-emerald-500 text-white px-6 py-2 rounded-full font-bold shadow-lg shadow-emerald-900/50">FINISH</button> 
+            </div> 
+            <div class="flex-1 overflow-y-auto p-4 space-y-4" id="active-exercises"> 
+                <div id="empty-workout" class="text-center py-20 opacity-50"><i data-lucide="dumbbell" class="w-16 h-16 mx-auto mb-4"></i><p>Add an exercise to start</p></div> 
+            </div> 
+            <div class="p-4 bg-slate-900 border-t border-white/10"> 
+                <button onclick="workout.openExercisePicker()" class="w-full py-4 rounded-xl border-2 border-dashed border-slate-700 text-slate-400 hover:border-emerald-500 hover:text-white transition-all flex items-center justify-center gap-2"><i data-lucide="plus"></i> Add Exercise</button> 
+            </div> 
+        </div> 
+ 
+        <div id="rest-timer-toast" class="fixed bottom-24 left-4 right-4 bg-slate-800 border border-slate-600 rounded-xl p-4 shadow-2xl z-50 flex items-center justify-between hidden slide-up"> 
+            <div class="flex items-center gap-3"><i data-lucide="timer" class="text-blue-400 animate-pulse"></i><div><h4 class="font-bold text-white">Resting...</h4><p id="rest-countdown" class="font-mono text-xl text-blue-300">00:00</p></div></div> 
+            <button onclick="workout.skipRest()" class="bg-slate-700 px-4 py-2 rounded-lg text-sm font-bold">Skip</button> 
+        </div> 
+ 
+        <nav class="glass h-20 flex justify-around items-center z-30 pb-2 px-2"> 
+            <button onclick="app.nav('home')" id="nav-home" class="text-emerald-400 flex flex-col items-center gap-1 p-2"><i data-lucide="layout-dashboard" class="w-5 h-5"></i><span class="text-[9px] font-bold">DASH</span></button> 
+            <button onclick="app.nav('history')" id="nav-history" class="text-slate-500 flex flex-col items-center gap-1 p-2"><i data-lucide="calendar" class="w-5 h-5"></i><span class="text-[9px] font-bold">LOG</span></button> 
+             
+            <button onclick="workout.startNew()" class="bg-gradient-to-tr from-emerald-500 to-cyan-500 p-4 rounded-full -mt-8 shadow-xl border-4 border-slate-900 text-white hover:scale-105 transition-transform"><i data-lucide="play" class="fill-current w-6 h-6 ml-1"></i></button> 
+             
+            <button onclick="app.nav('rank')" id="nav-rank" class="text-slate-500 flex flex-col items-center gap-1 p-2"><i data-lucide="trophy" class="w-5 h-5"></i><span class="text-[9px] font-bold">RANK</span></button> 
+            <button onclick="app.nav('profile')" id="nav-profile" class="text-slate-500 flex flex-col items-center gap-1 p-2"><i data-lucide="user" class="w-5 h-5"></i><span class="text-[9px] font-bold">ME</span></button> 
+        </nav> 
+ 
+        <div id="modal-exercises" class="fixed inset-0 z-[60] bg-black/80 hidden flex flex-col justify-end"> 
+            <div class="bg-slate-900 rounded-t-3xl h-[80vh] flex flex-col"> 
+                <div class="p-4 border-b border-white/10 flex justify-between items-center"><h3 class="font-bold text-xl">Select Exercise</h3><button onclick="document.getElementById('modal-exercises').classList.add('hidden')"><i data-lucide="x"></i></button></div> 
+                <div class="p-4 overflow-y-auto space-y-2" id="exercise-list"></div> 
+            </div> 
+        </div> 
+    </div> 
+ 
+    <!-- ================= JAVASCRIPT ================= --> 
+    <script src="js/config.js"></script>
+    <script src="js/app.js"></script>
+    <script src="js/workout.js"></script>
+    <script src="js/main.js"></script>
+</body> 
+</html> 

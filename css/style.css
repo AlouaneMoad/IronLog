@@ -1,0 +1,21 @@
+        :root { --p: #10b981; --s: #3b82f6; --bg: #020617; } 
+        body { font-family: 'Inter', sans-serif; background-color: var(--bg); color: white; -webkit-tap-highlight-color: transparent; } 
+        .font-rpg { font-family: 'Teko', sans-serif; text-transform: uppercase; letter-spacing: 1px; } 
+         
+        .rank-Bronze { color: #cd7f32; border-color: #cd7f32; } 
+        .rank-Silver { color: #c0c0c0; border-color: #c0c0c0; } 
+        .rank-Gold { color: #ffd700; border-color: #ffd700; } 
+        .rank-Diamond { color: #b9f2ff; border-color: #b9f2ff; text-shadow: 0 0 10px #b9f2ff; } 
+        .rank-Monster { color: #ff0055; border-color: #ff0055; text-shadow: 0 0 15px #ff0055; } 
+ 
+        .glass { background: rgba(30, 41, 59, 0.6); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.08); } 
+        .no-scrollbar::-webkit-scrollbar { display: none; } 
+         
+        .slide-up { animation: slideUp 0.3s cubic-bezier(0.2, 0.8, 0.2, 1); } 
+        @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } } 
+        .xp-bar-fill { transition: width 1s ease-out; box-shadow: 0 0 10px currentColor; } 
+        .animate-fade { animation: fadeIn 0.5s ease-out; } 
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } } 
+         
+        .loader { border: 3px solid rgba(255,255,255,0.1); border-top: 3px solid #10b981; border-radius: 50%; width: 24px; height: 24px; animation: spin 1s linear infinite; } 
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } } 
